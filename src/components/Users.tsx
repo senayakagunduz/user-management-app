@@ -16,7 +16,7 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
   const [show, setShow] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPageNumber, settotalPageNumber] = useState(1);
   const [apiTotal, setApiTotal] = useState(0);
   const [localUsers, setLocalUsers] = useState<User[]>([]);
 
@@ -35,11 +35,12 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
         }
       });
       setApiTotal(response.data.total);
-      if (currentPage === Math.ceil((response.data.total + storedUsers.length) / usersPerPage)) {
+      console.log(response.data.users)
+      if (totalPageNumber === Math.ceil((response.data.total + storedUsers.length) / usersPerPage)) {
       setUsers(storedUsers);
     } else {
       // Diğer sayfalarda API'den kullanıcıları çek
-      const skip = (currentPage - 1) * usersPerPage;
+      const skip = (totalPageNumber - 1) * usersPerPage;
       const apiResponse = await axios.get<Root>('https://dummyjson.com/users', {
         params: { limit: usersPerPage, skip }
       });
@@ -55,18 +56,19 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
 
   useEffect(() => {
     fetchUsers();
-  }, [currentPage]);
+  }, [totalPageNumber]);
 
 
  const totalPages = Math.ceil((apiTotal + localUsers.length) / usersPerPage);
 
   const handlePageChange = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
+    settotalPageNumber(pageNumber);
   }
-  const goToFirstPage = () => setCurrentPage(1);
-  const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
-  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
-  const goToLastPage = () => setCurrentPage(totalPages);
+  
+  const goToFirstPage = () => settotalPageNumber(1);
+  const goToPrevPage = () => settotalPageNumber(prev => Math.max(prev - 1, 1));
+  const goToNextPage = () => settotalPageNumber(prev => Math.min(prev + 1, totalPages));
+  const goToLastPage = () => settotalPageNumber(totalPages);
 
 
   const handleUserUpdated = (updatedUser: User) => {
@@ -92,10 +94,10 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
 
     // Add First and Prev
     items.push(
-      <Pagination.First key="first" onClick={goToFirstPage} disabled={currentPage === 1} />
+      <Pagination.First key="first" onClick={goToFirstPage} disabled={totalPageNumber === 1} />
     );
     items.push(
-      <Pagination.Prev key="prev" onClick={goToPrevPage} disabled={currentPage === 1} />
+      <Pagination.Prev key="prev" onClick={goToPrevPage} disabled={totalPageNumber === 1} />
     );
 
     // Logic to display page numbers with ellipsis
@@ -105,7 +107,7 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
         items.push(
           <Pagination.Item
             key={number}
-            active={number === currentPage}
+            active={number === totalPageNumber}
             onClick={() => handlePageChange(number)}
           >
             {number}
@@ -118,7 +120,7 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
       items.push(
         <Pagination.Item
           key={1}
-          active={1 === currentPage}
+          active={1 === totalPageNumber}
           onClick={() => handlePageChange(1)}
         >
           {1}
@@ -126,21 +128,21 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
       );
 
       // Add first ellipsis if needed
-      if (currentPage > 3) {
+      if (totalPageNumber > 3) {
         items.push(<Pagination.Ellipsis key="ellipsis1" />);
       }
 
       // Determine the start and end of the middle section
-      let startPage = Math.max(2, currentPage - 1);
-      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      let startPage = Math.max(2, totalPageNumber - 1);
+      let endPage = Math.min(totalPages - 1, totalPageNumber + 1);
 
       // Adjust if we're near the beginning
-      if (currentPage < 4) {
+      if (totalPageNumber < 4) {
         endPage = 4;
       }
 
       // Adjust if we're near the end
-      if (currentPage > totalPages - 3) {
+      if (totalPageNumber > totalPages - 3) {
         startPage = totalPages - 3;
       }
 
@@ -149,7 +151,7 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
         items.push(
           <Pagination.Item
             key={number}
-            active={number === currentPage}
+            active={number === totalPageNumber}
             onClick={() => handlePageChange(number)}
           >
             {number}
@@ -158,7 +160,7 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
       }
 
       // Add last ellipsis if needed
-      if (currentPage < totalPages - 2) {
+      if (totalPageNumber < totalPages - 2) {
         items.push(<Pagination.Ellipsis key="ellipsis2" />);
       }
 
@@ -166,7 +168,7 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
       items.push(
         <Pagination.Item
           key={totalPages}
-          active={totalPages === currentPage}
+          active={totalPages === totalPageNumber}
           onClick={() => handlePageChange(totalPages)}
         >
           {totalPages}
@@ -176,10 +178,10 @@ function Users({ selectedUser, setSelectedUser }: UsersProps) {
 
     // Add Next and Last
     items.push(
-      <Pagination.Next key="next" onClick={goToNextPage} disabled={currentPage === totalPages} />
+      <Pagination.Next key="next" onClick={goToNextPage} disabled={totalPageNumber === totalPages} />
     );
     items.push(
-      <Pagination.Last key="last" onClick={goToLastPage} disabled={currentPage === totalPages} />
+      <Pagination.Last key="last" onClick={goToLastPage} disabled={totalPageNumber === totalPages} />
     );
 
     return items;
